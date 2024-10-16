@@ -445,6 +445,134 @@ var _ = Describe("NetworkAddonsConfig", func() {
 			})
 		})
 	})
+
+	Context("when there is no pre-existing Config", func() {
+		DescribeTable("should succeed deploying selected components",
+			func(configSpec cnao.NetworkAddonsConfigSpec, components []Component) {
+				testConfigCreate(gvk, configSpec, components)
+
+				// Make sure that deployed components remain up and running
+				CheckConfigCondition(gvk, ConditionAvailable, ConditionTrue, CheckImmediately, time.Minute)
+			},
+
+			/*Entry(
+				"Empty config",
+				cnao.NetworkAddonsConfigSpec{},
+				[]Component{},
+			),*/
+
+			//2303
+			Entry(
+				MultusComponent.ComponentName,
+				cnao.NetworkAddonsConfigSpec{
+					Multus: &cnao.Multus{},
+				},
+				[]Component{MultusComponent},
+			),
+		)
+		// It("should deploy prometheus if NetworkAddonsConfigSpec is not empty", func() {
+		// 	testConfigCreate(gvk, cnao.NetworkAddonsConfigSpec{MacvtapCni: &cnao.MacvtapCni{}}, []Component{MacvtapComponent, MonitoringComponent})
+		// })
+		//2264
+		It("should be able to deploy all components at once", func() {
+			components := []Component{
+				MultusComponent,
+			}
+			configSpec := cnao.NetworkAddonsConfigSpec{
+				Multus:                 &cnao.Multus{},
+			}
+			testConfigCreate(gvk, configSpec, components)
+		})
+		//2304
+		It("should be able to deploy all components one by one", func() {
+			configSpec := cnao.NetworkAddonsConfigSpec{}
+			components := []Component{}
+
+			// Deploy initial empty config
+			testConfigCreate(gvk, configSpec, components)
+
+			// Deploy Multus component
+			configSpec.Multus = &cnao.Multus{}
+			components = append(components, MultusComponent)
+			testConfigUpdate(gvk, configSpec, components)
+			CheckModifiedEvent(gvk)
+			CheckProgressingEvent(gvk)
+
+		})
+		Context("and workload PlacementConfiguration is deployed on components", func() {
+			components := []Component{
+				MultusComponent,
+			}
+			configSpec := cnao.NetworkAddonsConfigSpec{
+				Multus:                 &cnao.Multus{},
+				PlacementConfiguration: &cnao.PlacementConfiguration{},
+			}
+			checkWorkloadPlacementOnComponents := func(expectedWorkLoadPlacement cnao.Placement) {
+				for _, component := range components {
+					componentPlacementList, err := PlacementListFromComponentDaemonSets(component)
+					Expect(err).ToNot(HaveOccurred(), "Should succeed getting the component Placement config")
+					for _, placement := range componentPlacementList {
+						Expect(placement).To(Equal(expectedWorkLoadPlacement), fmt.Sprintf("PlacementConfiguration of %s component should equal the default workload PlacementConfiguration", component.ComponentName))
+					}
+				}
+			}
+
+			BeforeEach(func() {
+				By("Deploying components with default PlacementConfiguration")
+				testConfigCreate(gvk, configSpec, components)
+
+				By("Checking PlacementConfiguration was set on components to default workload PlacementConfiguration")
+				checkWorkloadPlacementOnComponents(*network.GetDefaultPlacementConfiguration().Workloads)
+			})
+
+			It("should be able to update PlacementConfigurations on components specs", func() {
+				configSpec.PlacementConfiguration = &cnao.PlacementConfiguration{
+					Workloads: &cnao.Placement{NodeSelector: map[string]string{
+						"kubernetes.io/hostname": "node01"},
+					},
+				}
+
+				By("Re-deploying PlacementConfiguration with different workloads values")
+				testConfigUpdate(gvk, configSpec, components)
+
+				By("Checking PlacementConfiguration was set on components to updated workload PlacementConfiguration")
+				checkWorkloadPlacementOnComponents(*configSpec.PlacementConfiguration.Workloads)
+			})
+		})
+	})
+
+	Context("[test_id:abcd]when all components are already deployed", func() {
+		components := []Component{
+			MultusComponent,
+		}
+		configSpec := cnao.NetworkAddonsConfigSpec{
+			Multus:                &cnao.Multus{},
+		}
+		BeforeEach(func() {
+			CreateConfig(gvk, configSpec)
+			CheckConfigCondition(gvk, ConditionAvailable, ConditionTrue, 15*time.Minute, CheckDoNotRepeat)
+		})
+		//2305
+		It("should remain in Available condition after applying the same config", func() {
+			UpdateConfig(gvk, configSpec)
+			CheckConfigCondition(gvk, ConditionAvailable, ConditionTrue, CheckImmediately, 30*time.Second)
+		})
+		//2281
+		It("should be able to remove all of them by removing the config", func() {
+			DeleteConfig(gvk)
+			CheckComponentsRemoval(components)
+		})
+		//2300
+		It("should be able to remove the config and create it again", func() {
+			DeleteConfig(gvk)
+			//TODO: remove this checking after this [1] issue is resolved
+			// [1] https://github.com/kubevirt/cluster-network-addons-operator/issues/394
+			CheckComponentsRemoval(components)
+			CreateConfig(gvk, configSpec)
+			CheckConfigCondition(gvk, ConditionAvailable, ConditionTrue, 15*time.Minute, 30*time.Second)
+		})
+	})
+
 })
 
 func testConfigCreate(gvk schema.GroupVersionKind, configSpec cnao.NetworkAddonsConfigSpec, components []Component) {
