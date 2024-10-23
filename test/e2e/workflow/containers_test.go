@@ -12,7 +12,7 @@ import (
 )
 
 var _ = Describe("NetworkAddonsConfig", func() {
-	Context("[test_id:abcd]when is the config already deployed", func() {
+	Context("when is the config already deployed", func() {
 		configSpec := cnao.NetworkAddonsConfigSpec{
 		//	LinuxBridge: &cnao.LinuxBridge{},
 			Multus: &cnao.Multus{},

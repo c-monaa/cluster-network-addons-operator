@@ -15,7 +15,8 @@ var _ = Describe("NetworkAddonsConfig", func() {
 	Context("when a config is created", func() {
 		BeforeEach(func() {
 			configSpec := cnao.NetworkAddonsConfigSpec{
-				LinuxBridge: &cnao.LinuxBridge{},
+			//	LinuxBridge: &cnao.LinuxBridge{},
+				Multus: &cnao.Multus{},
 			}
 			CreateConfig(gvk, configSpec)
 		})
@@ -31,7 +32,7 @@ var _ = Describe("NetworkAddonsConfig", func() {
 		})
 	})
 
-	Context("when there is an existing config", func() {
+	Context("[test_id:abcd]when there is an existing config", func() {
 		BeforeEach(func() {
 			configSpec := cnao.NetworkAddonsConfigSpec{
 				Multus: &cnao.Multus{},
@@ -48,7 +49,7 @@ var _ = Describe("NetworkAddonsConfig", func() {
 			updatingConfig := func() {
 				configSpec := cnao.NetworkAddonsConfigSpec{
 					Multus:      &cnao.Multus{},
-					LinuxBridge: &cnao.LinuxBridge{},
+				//	LinuxBridge: &cnao.LinuxBridge{},
 				}
 
 				// Give validator some time to verify original state
