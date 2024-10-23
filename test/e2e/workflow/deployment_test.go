@@ -479,7 +479,7 @@ var _ = Describe("NetworkAddonsConfig", func() {
 				MultusComponent,
 			}
 			configSpec := cnao.NetworkAddonsConfigSpec{
-				Multus:                 &cnao.Multus{},
+				Multus: &cnao.Multus{},
 			}
 			testConfigCreate(gvk, configSpec, components)
 		})
@@ -541,12 +541,12 @@ var _ = Describe("NetworkAddonsConfig", func() {
 		})
 	})
 
-	Context("[test_id:abcd]when all components are already deployed", func() {
+	Context("when all components are already deployed", func() {
 		components := []Component{
 			MultusComponent,
 		}
 		configSpec := cnao.NetworkAddonsConfigSpec{
-			Multus:                &cnao.Multus{},
+			Multus: &cnao.Multus{},
 		}
 		BeforeEach(func() {
 			CreateConfig(gvk, configSpec)

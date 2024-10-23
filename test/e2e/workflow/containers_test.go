@@ -12,9 +12,10 @@ import (
 )
 
 var _ = Describe("NetworkAddonsConfig", func() {
-	Context("when is the config already deployed", func() {
+	Context("[test_id:abcd]when is the config already deployed", func() {
 		configSpec := cnao.NetworkAddonsConfigSpec{
-			LinuxBridge: &cnao.LinuxBridge{},
+		//	LinuxBridge: &cnao.LinuxBridge{},
+			Multus: &cnao.Multus{},
 		}
 		gvk := GetCnaoV1GroupVersionKind()
 		BeforeEach(func() {
