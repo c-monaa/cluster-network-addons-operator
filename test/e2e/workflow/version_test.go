@@ -17,6 +17,7 @@ var _ = Describe("NetworkAddonsConfig", func() {
 			configSpec := cnao.NetworkAddonsConfigSpec{
 			//	LinuxBridge: &cnao.LinuxBridge{},
 				Multus: &cnao.Multus{},
+				MultusDynamicNetworks:  &cnao.MultusDynamicNetworks{},
 			}
 			CreateConfig(gvk, configSpec)
 		})
@@ -32,10 +33,11 @@ var _ = Describe("NetworkAddonsConfig", func() {
 		})
 	})
 
-	Context("[test_id:abcd]when there is an existing config", func() {
+	Context("when there is an existing config", func() {
 		BeforeEach(func() {
 			configSpec := cnao.NetworkAddonsConfigSpec{
 				Multus: &cnao.Multus{},
+				MultusDynamicNetworks:  &cnao.MultusDynamicNetworks{},
 			}
 			CreateConfig(gvk, configSpec)
 			CheckConfigCondition(gvk, ConditionAvailable, ConditionTrue, 15*time.Minute, CheckDoNotRepeat)
@@ -49,6 +51,7 @@ var _ = Describe("NetworkAddonsConfig", func() {
 			updatingConfig := func() {
 				configSpec := cnao.NetworkAddonsConfigSpec{
 					Multus:      &cnao.Multus{},
+					MultusDynamicNetworks:  &cnao.MultusDynamicNetworks{},
 				//	LinuxBridge: &cnao.LinuxBridge{},
 				}
 

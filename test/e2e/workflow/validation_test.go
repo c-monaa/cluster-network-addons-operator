@@ -41,7 +41,9 @@ var _ = Describe("NetworkAddonsConfig", func() {
 	Context("when a valid config is deployed", func() {
 		BeforeEach(func() {
 			configSpec := cnao.NetworkAddonsConfigSpec{
-				LinuxBridge: &cnao.LinuxBridge{},
+				//LinuxBridge: &cnao.LinuxBridge{},
+				Multus:      &cnao.Multus{},
+				MultusDynamicNetworks:  &cnao.MultusDynamicNetworks{},
 			}
 			CreateConfig(gvk, configSpec)
 			CheckConfigCondition(gvk, ConditionAvailable, ConditionTrue, 2*time.Minute, CheckDoNotRepeat)
@@ -53,7 +55,9 @@ var _ = Describe("NetworkAddonsConfig", func() {
 
 			BeforeEach(func() {
 				updatedConfigSpec = cnao.NetworkAddonsConfigSpec{
-					LinuxBridge: &cnao.LinuxBridge{},
+					//LinuxBridge: &cnao.LinuxBridge{},
+					Multus:      &cnao.Multus{},
+					MultusDynamicNetworks:  &cnao.MultusDynamicNetworks{},
 				}
 				UpdateConfig(gvk, updatedConfigSpec)
 				resourceVersion = GetConfig(gvk).GetResourceVersion()

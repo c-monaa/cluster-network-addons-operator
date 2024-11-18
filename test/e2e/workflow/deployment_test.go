@@ -469,6 +469,15 @@ var _ = Describe("NetworkAddonsConfig", func() {
 				},
 				[]Component{MultusComponent},
 			),
+
+			Entry(
+				"Multus Dynamic Networks and dependencies",
+				cnao.NetworkAddonsConfigSpec{
+					Multus:                &cnao.Multus{},
+					MultusDynamicNetworks: &cnao.MultusDynamicNetworks{},
+				},
+				[]Component{MultusComponent, MultusDynamicNetworks},
+			),
 		)
 		// It("should deploy prometheus if NetworkAddonsConfigSpec is not empty", func() {
 		// 	testConfigCreate(gvk, cnao.NetworkAddonsConfigSpec{MacvtapCni: &cnao.MacvtapCni{}}, []Component{MacvtapComponent, MonitoringComponent})
@@ -477,9 +486,11 @@ var _ = Describe("NetworkAddonsConfig", func() {
 		It("should be able to deploy all components at once", func() {
 			components := []Component{
 				MultusComponent,
+				MultusDynamicNetworks,
 			}
 			configSpec := cnao.NetworkAddonsConfigSpec{
-				Multus: &cnao.Multus{},
+				Multus:                 &cnao.Multus{},
+				MultusDynamicNetworks:  &cnao.MultusDynamicNetworks{},
 			}
 			testConfigCreate(gvk, configSpec, components)
 		})
@@ -498,6 +509,12 @@ var _ = Describe("NetworkAddonsConfig", func() {
 			CheckModifiedEvent(gvk)
 			CheckProgressingEvent(gvk)
 
+			// Add Multus Dynamic Networks component (requires multus ...)
+			configSpec.Multus = &cnao.Multus{}
+			configSpec.MultusDynamicNetworks = &cnao.MultusDynamicNetworks{}
+			components = append(components, MultusComponent, MultusDynamicNetworks)
+			testConfigUpdate(gvk, configSpec, components)
+
 		})
 		Context("and workload PlacementConfiguration is deployed on components", func() {
 			components := []Component{
@@ -505,6 +522,7 @@ var _ = Describe("NetworkAddonsConfig", func() {
 			}
 			configSpec := cnao.NetworkAddonsConfigSpec{
 				Multus:                 &cnao.Multus{},
+				MultusDynamicNetworks:  &cnao.MultusDynamicNetworks{},
 				PlacementConfiguration: &cnao.PlacementConfiguration{},
 			}
 			checkWorkloadPlacementOnComponents := func(expectedWorkLoadPlacement cnao.Placement) {
@@ -544,9 +562,11 @@ var _ = Describe("NetworkAddonsConfig", func() {
 	Context("when all components are already deployed", func() {
 		components := []Component{
 			MultusComponent,
+			MultusDynamicNetworks,
 		}
 		configSpec := cnao.NetworkAddonsConfigSpec{
-			Multus: &cnao.Multus{},
+			Multus:                &cnao.Multus{},
+			MultusDynamicNetworks: &cnao.MultusDynamicNetworks{},
 		}
 		BeforeEach(func() {
 			CreateConfig(gvk, configSpec)
